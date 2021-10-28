@@ -1,5 +1,16 @@
 # RNASeq_WorkFlow
 
+Where I obtained the RNA-seq files: 
+
+[Original paper](https://www.nature.com/articles/s41591-019-0368-8#change-history)
+[Supplemental data used](https://www.ebi.ac.uk/ena/browser/view/PRJEB25797?show=reads)
+
+```
+$ wget [file link address]
+$ wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR249/000/ERR2496060/ERR2496060_1.fastq.gz
+```
+To download all files without having to type ```wget``` indvidually for each one, write a bash script with a recursive function such as the one in ```download_data.sh```.
+
 ## 1. FastQC 
 
 FastQC aims to provide a simple way to do some quality control checks on raw sequence data coming from high throughput sequencing pipelines such as RNA or ChIP sequencing data. It provides a quick overview of problematic areas of which you should be aware before doing any further analysis. This is done through an html report containing summary graphs and tables produced for each raw data file. 
@@ -33,10 +44,19 @@ The * indicates all files in the specified directory.
 [This](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [this](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/) are good resources to learn more about FastQC and the analysis modules found in the HTML report. 
 
 
-## 2. Adapter trimming 
+## 2. Adapter trimming *(optional)*
 
+We want to make sure that as many reads as possible map or align accurately to the genome. To ensure accuracy, only a small number of mismatches between the read sequence and the genome sequence are allowed, and any read with more than a few mismatches will be marked as being unaligned.
 
+Therefore, to make sure that all the reads in the dataset have a chance to map/align to the genome, unwanted information can be trimmed off from every read, one read at a time. The types of unwanted information can include one or more of the following:
 
+- leftover adapter sequences
+- known contaminants (strings of As/Ts, other sequences)
+- poor quality bases at read ends
+
+You can get a sense of whether this step is needed by looking through the FastQC report, paying special attention to the *Overrepresented Sequences* section. 
+
+I did not perform adapter trimming for this analysis because the quality of reads were good. Should you decide to perform this step, you can read more [here](https://hbctraining.github.io/Intro-to-rnaseq-hpc-O2/lessons/02_assessing_quality.html).  
 
 ## 3. STAR Workflow 
 
