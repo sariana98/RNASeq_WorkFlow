@@ -61,3 +61,5 @@ I did not perform adapter trimming for this analysis because the quality of read
 ## 3. STAR Workflow 
 
 STAR 
+samtools sort
+featureCounts
