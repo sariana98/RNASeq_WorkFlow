@@ -2,7 +2,7 @@
 
 Where I obtained the RNA-seq files: 
 
-[Original paper](https://www.nature.com/articles/s41591-019-0368-8#change-history)
+[Original paper](https://www.nature.com/articles/s41591-019-0368-8#change-history); 
 [Supplemental data used](https://www.ebi.ac.uk/ena/browser/view/PRJEB25797?show=reads)
 
 ```
