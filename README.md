@@ -60,6 +60,14 @@ I did not perform adapter trimming for this analysis because the quality of read
 
 ## 3. STAR Workflow 
 
-STAR 
+1. STAR with featureCounts
+
 samtools sort
-featureCounts
+
+featureCounts: after obtaining the .txt files and downloading them on my machine, I don't know how I'm supposed to read them into R and convert them into read counts. 
+
+2. STAR with RSEM
+
+- I first prepared reference for RSEM using rsem-prepare-reference: I'm not sure whether I need to do this with or without the gtf file 
+https://deweylab.github.io/RSEM/rsem-prepare-reference.html
+- rsem-calculate-expression: I get different errors depending on which reference I performed this with
