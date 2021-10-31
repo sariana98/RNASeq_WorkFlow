@@ -18,6 +18,7 @@ FastQC aims to provide a simple way to do some quality control checks on raw seq
 To run fastqc on a dataset, first add FastQC to your path: 
 
 On the Harmston server, this can be done by: 
+
 ```
 $ export PATH=$PATH:/home/shared/software/FastQC 
 ```
@@ -43,8 +44,7 @@ The * indicates all files in the specified directory.
 
 [This](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and [this](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/) are good resources to learn more about FastQC and the analysis modules found in the HTML report. 
 
-
-## 2. Adapter trimming *(optional)*
+**Adapter trimming** *(optional)*
 
 We want to make sure that as many reads as possible map or align accurately to the genome. To ensure accuracy, only a small number of mismatches between the read sequence and the genome sequence are allowed, and any read with more than a few mismatches will be marked as being unaligned.
 
@@ -58,20 +58,69 @@ You can get a sense of whether this step is needed by looking through the FastQC
 
 I did not perform adapter trimming for this analysis because the quality of reads were good. Should you decide to perform this step, you can read more [here](https://hbctraining.github.io/Intro-to-rnaseq-hpc-O2/lessons/02_assessing_quality.html).  
 
-## 3. STAR Workflow 
+## 2. STAR-RSEM Pipeline 
 
-1. STAR with featureCounts
+### Aligning reads to transcriptome using STAR
+```
+STAR --genomeDir [path to STAR Index] --readFilesCommand zcat --readFilesIn [read1] [read2] --runThreadN [threads] --sjdbGTFfile [path to GTF file] --twopassMode Basic --outWigType bedGraph --quantMode TranscriptomeSAM --outSAMtype BAM SortedByCoordinate --outFileNamePrefix [path/output filename]
 
-samtools sort
+STAR --genomeDir /home/shared/genomes/hg38/StarIndex/ --readFilesCommand zcat --readFilesIn ERR2496065_1.fastq.gz ERR2496065_2.fastq.gz --runThreadN 10 --sjdbGTFfile /home/sara/genomes/Homo_sapiens.GRCh38.100.chr.gtf --twopassMode Basic --outWigType bedGraph --quantMode TranscriptomeSAM --outSAMtype BAM SortedByCoordinate --outFileNamePrefix /home/sara/KRAS/STAR.transcriptome/ERR2496065
+```
 
-featureCounts: after obtaining the .txt files and downloading them on my machine, I don't know how I'm supposed to read them into R and convert them into read counts. 
+**Note** that the STAR ```--quantMode TranscriptomeSAM``` option will output alignments translated into transcript coordinates in the ```Aligned.toTranscriptome.out.bam``` file (in addition to alignments in genomic coordinates in ```Aligned.*.sam/bam``` files). These transcriptomic alignments can be used with
+various transcript quantification software that require reads to be mapped to transcriptome, such as RSEM. 
 
-2. STAR with RSEM
+For more parameters, check out the STAR [manual](https://physiology.med.cornell.edu/faculty/skrabanek/lab/angsd/lecture_notes/STARmanual.pdf).
 
-- I first prepared reference for RSEM using rsem-prepare-reference: I'm not sure whether I need to do this with or without the gtf file 
-[prepare-reference](https://deweylab.github.io/RSEM/rsem-prepare-reference.html)
+### Quantifying reads using RSEM
 
-- rsem-calculate-expression: I get different errors depending on which reference I performed this with
-[calculate-reference](https://deweylab.github.io/RSEM/rsem-calculate-expression.html#ARGUMENTS)
+RSEM is a software package for estimating gene and isoform expression levels from single-end or paired-end RNA-Seq data. If an annotated reference genome is available, RSEM can use a gtf file representation of those annotations to extract the transcript sequences for which quantification will be performed, and build the relevant genome and transcriptome indices.
 
-Making the data information matrix: I got the information from https://www.ncbi.nlm.nih.gov/Traces/study/?acc=ERP107752&o=acc_s%3Aa
+#### Prepare reference 
+
+Before calculating expression, prepare a reference for RSEM with a GTF file. 
+
+```
+$ rsem-prepare-reference --gtf [path to gft file] [path to FASTA file] [path/reference filename] 
+$ rsem-prepare-reference --gtf /home/sara/genomes/Homo_sapiens.GRCh38.100.chr.gtf /home/shared/genomes/hg38/hg38.fa /home/sara/genomes/ref/hg38
+```
+For more parameters, refer to prepare-reference [manual](https://deweylab.github.io/RSEM/rsem-prepare-reference.html)
+
+#### Calculate expression 
+
+```
+$ rsem-calculate-expression --paired-end --bam --strandedness reverse --alignments [path/BAM filename] [path/reference filename] [path/output filename] --no-bam-output -p [threads]
+$ /usr/local/bin/rsem-calculate-expression --paired-end --bam --strandedness reverse --alignments ERR2496065Aligned.sortedByCoord.out.bam /home/sara/genomes/ref/hg38 /home/sara/KRAS/rsem.output/ERR2496065Aligned.results --no-bam-output -p 10
+```
+For more parameters, refer to rsem-calculate-expression [manual](https://deweylab.github.io/RSEM/rsem-calculate-expression.html#ARGUMENTS).
+
+## 3. Reading DE into R
+
+Making the data information matrix: I got the information on the individual RNA-seq files from [here](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=ERP107752&o=acc_s%3Aa).
+
+## Alternative Option (?): STAR-featureCounts Pipeline 
+
+Today, we will be using the featureCounts tool to get the gene counts. It counts reads that map to a single location (uniquely mapping) and follows the scheme in the figure below for **assigning reads to a gene/exon**." Follow this [training](https://github.com/hbctraining/Intro-to-rnaseq-hpc-O2/blob/master/lessons/05_counting_reads.md).
+
+"When assigning reads to genes or exons, most reads can be successfully assigned without
+ambiguity. However if reads are to be assigned to transcripts, due to the high overlap between
+transcripts from the same gene, many reads will be found to overlap more than one transcript
+and therefore cannot be uniquely assigned. Specialized transcript-level quantification tools
+are recommended for counting reads to transcripts. Such tools use model-based approaches
+to deconvolve reads overlapping with multiple transcripts." - Subread [manual](http://subread.sourceforge.net/SubreadUsersGuide.pdf)
+
+```
+samtools sort [-@ threads] [in.bam]
+samtools sort -@ 10 ERR2496065.sortedByCoord.out.bam > ERR2496065.sorted.bam
+```
+For more parameters, check out the samtools sort [manual](http://www.htslib.org/doc/samtools-sort.html)
+
+```
+featureCounts -p -B -t exon -g gene_id -a [GTF filename] -T [threads] -s 2 -o [output filename] [input filename]
+featureCounts -p -B -t exon -g gene_id -a /home/sara/genomes/Homo_sapiens.GRCh38.100.chr.gtf -T 10 -s 2 -o /home/sara/KRAS/counts/ERR2496065_counts.txt ERR2496065.sorted.bam
+```
+
+Subread [manual](http://subread.sourceforge.net/SubreadUsersGuide.pdf)
+
+
+featureCounts: after obtaining the .txt files and downloading them on my machine, I don't know how I'm supposed to read them into R and convert them into read counts.
