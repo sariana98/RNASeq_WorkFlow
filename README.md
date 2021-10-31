@@ -69,9 +69,9 @@ featureCounts: after obtaining the .txt files and downloading them on my machine
 2. STAR with RSEM
 
 - I first prepared reference for RSEM using rsem-prepare-reference: I'm not sure whether I need to do this with or without the gtf file 
-(prepare-reference)[https://deweylab.github.io/RSEM/rsem-prepare-reference.html]
+[prepare-reference](https://deweylab.github.io/RSEM/rsem-prepare-reference.html)
 
 - rsem-calculate-expression: I get different errors depending on which reference I performed this with
-(calculate-reference)[https://deweylab.github.io/RSEM/rsem-calculate-expression.html#ARGUMENTS]
+[calculate-reference](https://deweylab.github.io/RSEM/rsem-calculate-expression.html#ARGUMENTS)
 
 Making the data information matrix: I got the information from https://www.ncbi.nlm.nih.gov/Traces/study/?acc=ERP107752&o=acc_s%3Aa
