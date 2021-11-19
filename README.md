@@ -90,7 +90,7 @@ For more parameters, refer to prepare-reference [manual](https://deweylab.github
 
 ```
 $ rsem-calculate-expression --paired-end --bam --strandedness reverse --alignments [path/BAM filename] [path/reference filename] [path/output filename] --no-bam-output -p [threads]
-$ /usr/local/bin/rsem-calculate-expression --paired-end --bam --strandedness reverse --alignments ERR2496065Aligned.sortedByCoord.out.bam /home/sara/genomes/ref/hg38 /home/sara/KRAS/rsem.output/ERR2496065Aligned.results --no-bam-output -p 10
+$ /usr/local/bin/rsem-calculate-expression --paired-end --bam --strandedness reverse --alignments ERR2496065Aligned.toTranscriptome.out.bam /home/sara/genomes/ref/hg38 /home/sara/KRAS/rsem.output/ERR2496065Aligned.results --no-bam-output -p 10
 ```
 For more parameters, refer to rsem-calculate-expression [manual](https://deweylab.github.io/RSEM/rsem-calculate-expression.html#ARGUMENTS).
 
